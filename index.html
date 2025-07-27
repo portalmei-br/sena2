@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telesena - Consulte seu Prêmio</title>
+    <meta name="description" content="Consulte se você tem prêmios disponíveis na Telesena. Digite seu CPF e verifique se você foi contemplado.">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎁</text></svg>">
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+            </div>
+            <h3>Consultando seus dados...</h3>
+            <p id="loading-message">Verificando informações no banco de dados da Telesena</p>
+        </div>
+    </div>
+
+    <!-- Prize Modal -->
+    <div id="prize-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>Informações do Prêmio</h2>
+                <button class="modal-close" onclick="closePrizeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <h3 id="user-name">Nome do Usuário</h3>
+                        <p id="user-cpf">CPF: 000.000.000-00</p>
+                        <p id="user-location">Cidade, Estado</p>
+                    </div>
+                </div>
+                
+                <div class="prize-info">
+                    <div class="prize-status" id="prize-status">
+                        <div class="status-icon">
+                            <i class="fas fa-gift"></i>
+                        </div>
+                        <div class="status-content">
+                            <h4>Parabéns! Você tem um prêmio disponível!</h4>
+                            <p class="prize-description">Prêmio especial para clientes da Telesena</p>
+                        </div>
+                    </div>
+                    
+                    <div class="prize-details">
+                        <div class="prize-amount">
+                            <span class="currency">R$</span>
+                            <span class="amount" id="prize-value">0,00</span>
+                        </div>
+                        <div class="prize-meta">
+                            <div class="meta-item">
+                                <span class="meta-label">Protocolo:</span>
+                                <span class="meta-value" id="prize-protocol">TSN-2025-000000</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Válido até:</span>
+                                <span class="meta-value" id="prize-expiry">31/12/2025</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn-secondary" onclick="closePrizeModal()">
+                        <i class="fas fa-times"></i>
+                        Fechar
+                    </button>
+                    <button class="btn-primary" onclick="redirectToRedeem()">
+                        <i class="fas fa-external-link-alt"></i>
+                        Resgatar Prêmio
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- No Prize Modal -->
+    <div id="no-prize-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>Consulta Realizada</h2>
+                <button class="modal-close" onclick="closeNoPrizeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <h3 id="no-prize-user-name">Nome do Usuário</h3>
+                        <p id="no-prize-user-cpf">CPF: 000.000.000-00</p>
+                        <p id="no-prize-user-location">Cidade, Estado</p>
+                    </div>
+                </div>
+                
+                <div class="no-prize-info">
+                    <div class="no-prize-status">
+                        <div class="status-icon">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="status-content">
+                            <h4>Nenhum prêmio encontrado</h4>
+                            <p>Não encontramos prêmios disponíveis para este CPF no momento.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="suggestions">
+                        <h5>O que você pode fazer:</h5>
+                        <ul>
+                            <li><i class="fas fa-check"></i> Verifique se o CPF foi digitado corretamente</li>
+                            <li><i class="fas fa-check"></i> Consulte novamente em alguns dias</li>
+                            <li><i class="fas fa-check"></i> Entre em contato com nosso suporte</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn-secondary" onclick="closeNoPrizeModal()">
+                        <i class="fas fa-times"></i>
+                        Fechar
+                    </button>
+                    <button class="btn-primary" onclick="newSearch()">
+                        <i class="fas fa-search"></i>
+                        Nova Consulta
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-gift"></i>
+                    </div>
+                    <span class="logo-text">Telesena</span>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="#inicio" class="nav-link">Início</a></li>
+                    <li><a href="#como-funciona" class="nav-link">Como Funciona</a></li>
+                    <li><a href="#depoimentos" class="nav-link">Depoimentos</a></li>
+                    <li><a href="#faq" class="nav-link">FAQ</a></li>
+                    <li><a href="#contato" class="nav-link">Contato</a></li>
+                </ul>
+                <div class="nav-toggle" id="nav-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="inicio" class="hero">
+        <div class="hero-background">
+            <div class="hero-overlay"></div>
+            <div class="hero-particles"></div>
+        </div>
+        <div class="hero-content">
+            <div class="container">
+                <div class="hero-text">
+                    <h1 class="hero-title">
+                        Consulte seu <span class="highlight">Prêmio da Telesena</span> 
+                        <br>de Forma Rápida e Segura
+                    </h1>
+                    <p class="hero-description">
+                        Você pode ter sido contemplado! Digite apenas seu CPF para verificar 
+                        se você tem direito a resgatar um prêmio especial da Telesena.
+                    </p>
+                </div>
+                
+                <div class="search-container">
+                    <div class="search-box">
+                        <div class="search-input-group">
+                            <div class="input-wrapper">
+                                <i class="fas fa-user search-icon"></i>
+                                <input 
+                                    type="text" 
+                                    id="cpf-input" 
+                                    placeholder="Digite seu CPF"
+                                    class="search-input"
+                                    maxlength="14"
+                                >
+                            </div>
+                            <button type="button" id="search-btn" class="search-button">
+                                <i class="fas fa-search"></i>
+                                <span>Consultar Prêmio</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="search-suggestions">
+                        <span class="suggestions-label">Informação importante:</span>
+                        <div class="suggestions-text">
+                            <p>Digite apenas seu CPF para consultar se você possui prêmios disponíveis</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <span class="stat-number" data-target="75000">0</span>
+                        <span class="stat-label">Prêmios Consultados</span>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <span class="stat-number" data-target="3200">0</span>
+                        <span class="stat-label">Clientes Atendidos</span>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <span class="stat-number" data-target="45">0</span>
+                        <span class="stat-label">Anos de Tradição</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <div class="scroll-arrow">
+                <i class="fas fa-chevron-down"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="como-funciona" class="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Como Funciona</h2>
+                <p class="section-subtitle">Consulte seu prêmio em 2 passos simples</p>
+            </div>
+            
+            <div class="steps-container">
+                <div class="steps-grid">
+                    <div class="step-card" data-step="1">
+                        <div class="step-icon">
+                            <i class="fas fa-user-check"></i>
+                            <span class="step-number">1</span>
+                        </div>
+                        <div class="step-content">
+                            <h3>Digite seu CPF</h3>
+                            <p>Informe apenas seu CPF no campo acima. Nossa consulta é rápida e segura.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step-card" data-step="2">
+                        <div class="step-icon">
+                            <i class="fas fa-gift"></i>
+                            <span class="step-number">2</span>
+                        </div>
+                        <div class="step-content">
+                            <h3>Veja seu Prêmio</h3>
+                            <p>Se você tiver prêmios disponíveis, as informações aparecerão na tela instantaneamente.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="steps-connector"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>100% Seguro</h3>
+                        <p>Todos os dados são protegidos com criptografia de ponta e certificação SSL.</p>
+                    </div>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Consulta Instantânea</h3>
+                        <p>Resultado da consulta em segundos, sem complicações ou burocracias.</p>
+                    </div>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Suporte 24h</h3>
+                        <p>Nossa equipe está disponível 24 horas para ajudar você.</p>
+                    </div>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Acesso Mobile</h3>
+                        <p>Consulte seus prêmios de qualquer lugar usando seu smartphone.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="depoimentos" class="testimonials">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Depoimentos de Clientes</h2>
+                <p class="section-subtitle">Veja o que nossos clientes falam sobre nossa plataforma</p>
+            </div>
+            
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="testimonial-content">
+                        <p>"Muito fácil de usar! Digitei meu CPF e descobri que tinha um prêmio esperando por mim. Recomendo!"</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="author-info">
+                            <h4>Maria Silva</h4>
+                            <span>São Paulo, SP</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="testimonial-content">
+                        <p>"Sistema muito rápido e confiável. Em segundos já sabia se tinha prêmios disponíveis. Excelente!"</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="author-info">
+                            <h4>João Santos</h4>
+                            <span>Rio de Janeiro, RJ</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="testimonial-content">
+                        <p>"Interface muito profissional e segura. Consultei meus dados sem nenhuma preocupação."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="author-info">
+                            <h4>Ana Costa</h4>
+                            <span>Belo Horizonte, MG</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="faq">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Perguntas Frequentes</h2>
+                <p class="section-subtitle">Tire suas dúvidas sobre a consulta de prêmios</p>
+            </div>
+            
+            <div class="faq-container">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Como funciona a consulta de prêmios?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Basta digitar seu CPF no campo acima e clicar em "Consultar Prêmio". Nosso sistema verificará automaticamente se você possui prêmios disponíveis.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>A consulta é gratuita?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Sim! A consulta de prêmios é completamente gratuita. Você pode verificar quantas vezes quiser sem nenhum custo.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Meus dados estão seguros?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Sim! Utilizamos criptografia SSL e todos os dados são protegidos conforme a Lei Geral de Proteção de Dados (LGPD).</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>E se eu tiver um prêmio disponível?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Se você tiver prêmios disponíveis, as informações aparecerão na tela com todos os detalhes e instruções para o resgate.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <div class="cta-icon">
+                    <i class="fas fa-gift"></i>
+                </div>
+                <h2>Não perca tempo! Consulte agora se você tem um prêmio</h2>
+                <p>Milhares de brasileiros já consultaram seus prêmios. Você pode ser o próximo!</p>
+                <button class="cta-button" onclick="document.getElementById('cpf-input').focus(); document.getElementById('inicio').scrollIntoView({behavior: 'smooth'})">
+                    <i class="fas fa-search"></i>
+                    <span>Consultar Meu Prêmio Agora</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contato" class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section footer-brand">
+                    <div class="footer-logo">
+                        <div class="logo-icon">
+                            <i class="fas fa-gift"></i>
+                        </div>
+                        <span class="logo-text">Telesena</span>
+                    </div>
+                    <p class="footer-description">
+                        Há mais de 45 anos conectando brasileiros aos seus sonhos através de prêmios e oportunidades.
+                    </p>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Consulta de Prêmios</h3>
+                    <ul class="footer-links">
+                        <li><a href="#como-funciona">Como Funciona</a></li>
+                        <li><a href="#faq">Perguntas Frequentes</a></li>
+                        <li><a href="#depoimentos">Depoimentos</a></li>
+                        <li><a href="#">Termos de Uso</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Suporte</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Central de Ajuda</a></li>
+                        <li><a href="#">Fale Conosco</a></li>
+                        <li><a href="#">Política de Privacidade</a></li>
+                        <li><a href="#">Segurança</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Contato</h3>
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <i class="fas fa-phone"></i>
+                            <span>0800 123 4567</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>contato@telesena.com.br</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-clock"></i>
+                            <span>24 horas por dia</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <div class="footer-bottom-content">
+                    <p>&copy; 2025 Telesena. Todos os direitos reservados.</p>
+                    <div class="security-badges">
+                        <span class="security-badge">
+                            <i class="fas fa-shield-alt"></i>
+                            Site Seguro
+                        </span>
+                        <span class="security-badge">
+                            <i class="fas fa-lock"></i>
+                            SSL Certificado
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to Top Button -->
+    <button id="back-to-top" class="back-to-top" style="display: none;">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <!-- Notification -->
+    <div id="notification" class="notification" style="display: none;">
+        <div class="notification-content">
+            <i class="notification-icon"></i>
+            <span class="notification-message"></span>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
